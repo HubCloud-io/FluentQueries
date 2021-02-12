@@ -2,6 +2,7 @@
 using FluentQueries.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace FluentQueries.QueryBuilders
@@ -10,6 +11,8 @@ namespace FluentQueries.QueryBuilders
     {
         private string _fromExpression;
         private List<string> _selectExpressions = new List<string>();
+        private string _whereExpression = "";
+        private List<IQueryParameter> _parameters = new List<IQueryParameter>();
 
         public SelectBuilder FromExpression(string fromExpression)
         {
@@ -22,7 +25,7 @@ namespace FluentQueries.QueryBuilders
         {
             _fromExpression = $"[{tableName}]";
 
-            if (string.IsNullOrEmpty(alias))
+            if (!string.IsNullOrEmpty(alias))
             {
                 _fromExpression += $" AS {alias}";
             }
@@ -38,28 +41,82 @@ namespace FluentQueries.QueryBuilders
 
         public SelectBuilder Select(string fieldName, string alias = null, string tableName = null)
         {
-            var selectExpression = "";
-            if (string.IsNullOrEmpty(tableName))
-            {
-                selectExpression = $"[{fieldName}]";
-            }
-            else
-            {
-                selectExpression = $"[{tableName}].[{fieldName}]";
-            }
-
-            if (!string.IsNullOrEmpty(alias))
-            {
-                selectExpression = selectExpression + " AS " + alias;
-            }
+            var queryField = new QueryField(fieldName, alias, tableName);
+            var selectExpression = queryField.Expression;
             _selectExpressions.Add(selectExpression);
 
             return this;
         }
 
-        public IQuery ToQuery()
+        public SelectBuilder SelectIf(bool condition, string fieldName, string alias = null, string tableName = null)
+        {
+            if (!condition)
+            {
+                return this;
+            }
+
+            Select(fieldName, alias, tableName);
+
+            return this;
+        }
+
+        public SelectBuilder Select(IEnumerable<IQueryField> fields)
+        {
+
+            foreach (var fld in fields)
+            {
+                var selectExpression = fld.Expression;
+                _selectExpressions.Add(selectExpression);
+            }
+
+            return this;
+        }
+
+        public SelectBuilder Where(string whereExpression, IEnumerable<IQueryParameter> parameters)
+        {
+            _whereExpression += whereExpression;
+            _parameters.AddRange(parameters);
+
+            return this;
+        }
+
+        public IQuery Query()
         {
             var query = new Query();
+            query.AddParameters(_parameters);
+
+            var sb = new StringBuilder();
+
+            sb.Append("SELECT");
+            if (!_selectExpressions.Any())
+            {
+                sb.AppendLine(" * ");
+            }
+            else
+            {
+                var n = 1;
+                foreach (var selectExpression in _selectExpressions)
+                {
+                    if (n == 1)
+                    {
+                        sb.AppendLine($" {selectExpression}");
+                    }
+                    else
+                    {
+                        sb.AppendLine($",{selectExpression}");
+                    }
+                    n++;
+                }
+            }
+
+            sb.AppendLine($"FROM {_fromExpression}");
+
+            if (!string.IsNullOrEmpty(_whereExpression))
+            {
+                sb.AppendLine($"WHERE {_whereExpression}");
+            }
+
+            query.Text = sb.ToString();
 
             return query;
         }

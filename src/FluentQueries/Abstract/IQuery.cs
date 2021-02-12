@@ -9,5 +9,7 @@ namespace FluentQueries.Abstract
         string Text { get; set; }
 
         IEnumerable<IQueryParameter> Parameters { get; }
+
+        void AddParameters(IEnumerable<IQueryParameter> parameters);
     }
 }

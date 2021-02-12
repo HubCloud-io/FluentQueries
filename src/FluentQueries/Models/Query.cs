@@ -11,5 +11,10 @@ namespace FluentQueries.Models
 
         public string Text { get; set; }
         public IEnumerable<IQueryParameter> Parameters => _parameters;
+
+        public void AddParameters(IEnumerable<IQueryParameter> parameters)
+        {
+            _parameters.AddRange(parameters);
+        }
     }
 }
