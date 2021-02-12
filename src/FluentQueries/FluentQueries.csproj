@@ -2,6 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Version>0.0.1</Version>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Copyright>HubCloud.FluentQueries</Copyright>
+    <Authors>Michael Zyubin</Authors>
+    <Company>HubCloud</Company>
+    <PackageId>HubCloud.FluentQueries</PackageId>
   </PropertyGroup>
 
 </Project>
