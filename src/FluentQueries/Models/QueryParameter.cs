@@ -17,11 +17,73 @@ namespace FluentQueries.Models
 
         }
 
+        public QueryParameter(string name, object value)
+        {
+            Name = name;
+            Value = value;
+            DbType = DbTypeByValue(value);
+        }
+
         public QueryParameter(string name, object value, DbType dbType)
         {
             Name = name;
             Value = value;
             DbType = dbType;
+        }
+
+        public static DbType DbTypeByValue(object value)
+        {
+            var dbType = DbType.Object;
+
+            if (value == null)
+            {
+                return dbType;
+            }
+
+            var valueType = value.GetType();
+
+            if (valueType == typeof(int))
+            {
+                dbType = DbType.Int32;
+            }
+            else if (valueType == typeof(long))
+            {
+                dbType = DbType.Int64;
+            }
+            else if (valueType == typeof(byte))
+            {
+                dbType = DbType.Byte;
+            }
+            else if (valueType == typeof(Int16))
+            {
+                dbType = DbType.Int16;
+            }
+            else if (valueType == typeof(decimal))
+            {
+                dbType = DbType.Decimal;
+            }
+            else if (valueType == typeof(double))
+            {
+                dbType = DbType.Double;
+            }
+            else if (valueType == typeof(bool))
+            {
+                dbType = DbType.Boolean;
+            }
+            else if (valueType == typeof(DateTime))
+            {
+                dbType = DbType.DateTime;
+            }
+            else if (valueType == typeof(Guid))
+            {
+                dbType = DbType.Guid;
+            }
+            else if (valueType == typeof(string))
+            {
+                dbType = DbType.String;
+            }
+
+            return dbType;
         }
     }
 }
