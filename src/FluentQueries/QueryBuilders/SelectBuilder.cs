@@ -2,6 +2,7 @@
 using FluentQueries.Models;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 
@@ -72,13 +73,38 @@ namespace FluentQueries.QueryBuilders
             return this;
         }
 
-        public SelectBuilder Where(string whereExpression, IEnumerable<IQueryParameter> parameters)
+        public SelectBuilder Where(string whereExpression)
         {
-            _whereExpression += whereExpression;
-            _parameters.AddRange(parameters);
+            if (string.IsNullOrEmpty(_whereExpression))
+            {
+                _whereExpression = whereExpression;
+            }
+            else
+            {
+                _whereExpression += " AND " + whereExpression;
+            }
 
             return this;
         }
+
+        public SelectBuilder Parameter(string name, object value)
+        {
+            var parameter = new QueryParameter(name, value);
+
+            _parameters.Add(parameter);
+
+            return this;
+        }
+
+        public SelectBuilder Parameter(string name, object value, DbType dbType)
+        {
+            var parameter = new QueryParameter(name, value, dbType);
+
+            _parameters.Add(parameter);
+
+            return this;
+        }
+
 
         public IQuery Query()
         {

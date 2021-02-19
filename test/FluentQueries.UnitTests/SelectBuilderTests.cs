@@ -66,13 +66,11 @@ FROM [Table]
         [Test]
         public void Query_SelectWithWhere()
         {
-            var parameters = new List<QueryParameter>();
-            parameters.Add(new QueryParameter("id", 1, DbType.Int32));
 
             var query = SelectBuilder.Make()
                 .Select("Title")
                 .From("Table")
-                .Where("Id = @id", parameters).Query();
+                .Where("Id = @id").Parameter("id", 1).Query();
 
             var ethalon = @"SELECT [Title]
 FROM [Table]
@@ -82,6 +80,29 @@ WHERE Id = @id
             Assert.AreEqual(1, query.Parameters.Count());
 
         }
+
+        [Test]
+        public void Query_SelectWithTwoConditions()
+        {
+
+            var query = SelectBuilder.Make()
+                .Select("Title")
+                .From("Table")
+                .Where("DateStart >= @dateStart")
+                .Parameter("dateStart", new DateTime(2021,1,1))
+                .Where("DateFinish <= @dateFinish")
+                .Parameter("dateFinish",new DateTime(2021,12,31))
+                .Query();
+
+            var ethalon = @"SELECT [Title]
+FROM [Table]
+WHERE DateStart >= @dateStart AND DateFinish <= @dateFinish
+";
+            Assert.AreEqual(ethalon, query.Text);
+            Assert.AreEqual(2, query.Parameters.Count());
+
+        }
+
 
     }
 }
