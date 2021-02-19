@@ -10,33 +10,41 @@ namespace FluentQueries.QueryBuilders
     public class InsertBuilder
     {
         private string _into = "";
-        private Dictionary<string, string> _fields = new Dictionary<string, string>();
-        //  private string _whereExpression = "";
+        private List<string> _fields = new List<string>();
+        private List<List<string>> _data = new List<List<string>>();
         private Dictionary<string, IQueryParameter> _parameters = new Dictionary<string, IQueryParameter>();
 
-        public InsertBuilder Into(string tableName)
+        public InsertBuilder Into(string tableName, IEnumerable<string> fields)
         {
             _into = $"[{tableName}]";
 
-            return this;
-        }
-
-        public InsertBuilder Set(string name, object value)
-        {
-            SetExpressionAndParameter(name, value);
-            return this;
-        }
-
-        public InsertBuilder Set(Dictionary<string, object> values)
-        {
-            foreach (var kvp in values)
+            foreach (var fldName in fields)
             {
-                SetExpressionAndParameter(kvp.Key, kvp.Value);
+                _fields.Add(fldName);
             }
 
             return this;
         }
 
+        public InsertBuilder Values(IEnumerable<object> values)
+        {
+            var row = new List<string>();
+
+            foreach (var value in values)
+            {
+                var parameterName = $"parameter{(_parameters.Count() + 1)}";
+
+                var parameter = new QueryParameter(parameterName, value);
+                SetParameter(parameter);
+
+                row.Add("@" + parameterName);
+
+            }
+
+            _data.Add(row);
+
+            return this;
+        }
 
         public IQuery Query()
         {
@@ -50,52 +58,45 @@ namespace FluentQueries.QueryBuilders
             // Keys
             sb.Append("(");
             var n = 1;
-            foreach (var kvp in _fields)
+            foreach (var fld in _fields)
             {
                 if (n > 1)
                 {
                     sb.Append(", ");
                 }
-                sb.Append($"[{kvp.Key}]");
+                sb.Append($"[{fld}]");
                 n++;
             }
             sb.AppendLine(")");
 
             // Values
-            sb.Append("VALUES(");
-            n = 1;
-            foreach(var kvp in _fields)
+            sb.AppendLine("VALUES");
+
+            var r = 1;
+            foreach (var row in _data)
             {
-                if(n > 1)
+                n = 1;
+                if (r > 1)
                 {
-                    sb.Append(", ");
+                    sb.Append(",");
                 }
-                sb.Append(kvp.Value);
-                n++;
+                sb.Append("(");
+                foreach (var expression in row)
+                {
+                    if (n > 1)
+                    {
+                        sb.Append(", ");
+                    }
+                    sb.Append(expression);
+                    n++;
+                }
+                sb.AppendLine(")");
+                r++;
             }
-            sb.Append(")");
 
             query.Text = sb.ToString();
 
             return query;
-
-        }
-
-        private void SetExpressionAndParameter(string name, object value)
-        {
-            var parameterName = name.ToLower();
-            var parameterExpression = $"@{parameterName}";
-            if (_fields.ContainsKey(name))
-            {
-                _fields[name] = parameterExpression;
-            }
-            else
-            {
-                _fields.Add(name, parameterExpression);
-            }
-
-            var parameter = new QueryParameter(parameterName, value);
-            SetParameter(parameter);
 
         }
 
