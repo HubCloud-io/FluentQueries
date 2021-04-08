@@ -12,8 +12,15 @@ namespace FluentQueries.QueryBuilders
     {
         private string _fromExpression;
         private List<string> _selectExpressions = new List<string>();
+        private List<string> _orderByExpressions = new List<string>();
+        private List<string> _leftJoinExpressions = new List<string>();
         private string _whereExpression = "";
         private List<IQueryParameter> _parameters = new List<IQueryParameter>();
+
+        public static SelectBuilder Make()
+        {
+            return new SelectBuilder();
+        }
 
         public SelectBuilder FromExpression(string fromExpression)
         {
@@ -69,6 +76,21 @@ namespace FluentQueries.QueryBuilders
                 var selectExpression = fld.Expression;
                 _selectExpressions.Add(selectExpression);
             }
+
+            return this;
+        }
+
+        public SelectBuilder OrderBy(string expression)
+        {
+            _orderByExpressions.Add(expression);
+
+            return this;
+        }
+
+        public SelectBuilder LeftJoin(string expression)
+        {
+
+            _leftJoinExpressions.Add(expression);
 
             return this;
         }
@@ -135,21 +157,55 @@ namespace FluentQueries.QueryBuilders
                 }
             }
 
+            // FROM
             sb.AppendLine($"FROM {_fromExpression}");
 
+            // JOIN
+            AddLeftJoinExpressions(sb);
+
+            // Where
             if (!string.IsNullOrEmpty(_whereExpression))
             {
                 sb.AppendLine($"WHERE {_whereExpression}");
             }
+
+            // ORDER BY
+            AddOrderByExpressions(sb);
 
             query.Text = sb.ToString();
 
             return query;
         }
 
-        public static SelectBuilder Make()
+
+        private void AddLeftJoinExpressions(StringBuilder sb)
         {
-            return new SelectBuilder();
+            if (_leftJoinExpressions.Any())
+            {
+                foreach (var currentExpression in _leftJoinExpressions)
+                {
+                    sb.AppendLine($"LEFT JOIN {currentExpression}");
+
+                }
+            }
+        }
+
+        private void AddOrderByExpressions(StringBuilder sb)
+        {
+            if (_orderByExpressions.Any())
+            {
+                sb.Append("ORDER BY ");
+                var n = 1;
+                foreach (var currentExpression in _orderByExpressions)
+                {
+                    if (n > 1)
+                    {
+                        sb.Append(", ");
+                    }
+                    sb.Append(currentExpression);
+                    n++;
+                }
+            }
         }
     }
 }

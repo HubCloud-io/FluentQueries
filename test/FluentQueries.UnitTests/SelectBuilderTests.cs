@@ -103,6 +103,29 @@ WHERE DateStart >= @dateStart AND DateFinish <= @dateFinish
 
         }
 
+        [Test]
+        public void Query_OrderByOneField()
+        {
+            var query = SelectBuilder.Make().Select("Title").From("Table").OrderBy("[Date] DESC").Query();
+
+            var ethalon = @"SELECT [Title]
+FROM [Table]
+ORDER BY [Date] DESC";
+            Assert.AreEqual(ethalon, query.Text);
+        }
+
+        [Test]
+        public void Query_OrderByTwoFields()
+        {
+            var query = SelectBuilder.Make().Select("Title").From("Table").OrderBy("[Date] DESC").OrderBy("[Number]").Query();
+
+            var ethalon = @"SELECT [Title]
+FROM [Table]
+ORDER BY [Date] DESC, [Number]";
+            Assert.AreEqual(ethalon, query.Text);
+        }
+
+
 
     }
 }
