@@ -1,4 +1,6 @@
-﻿using FluentQueries.QueryBuilders;
+﻿using FluentQueries.Abstract;
+using FluentQueries.Models;
+using FluentQueries.QueryBuilders;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -32,6 +34,31 @@ VALUES
             Assert.AreEqual(4, query.Parameters.Count());
 
         }
+
+        [Test]
+        public void Query_InsertRowByDataFields()
+        {
+            var row1 = new List<IDataField>();
+            row1.Add(new DataField("Uid", Guid.Parse("{14A791DC-8C9E-4F23-A542-B12F848F497A}"), typeof(Guid)));
+            row1.Add(new DataField("Number", 1, typeof(int)));
+            row1.Add(new DataField("Date", new DateTime(2021, 02, 16), typeof(DateTime)));
+            row1.Add(new DataField("fld_abc123", 1, typeof(int)));
+
+            var query = InsertBuilder.Make().Into("Table", row1).Values(row1).Query();
+
+            var ethalon = @"INSERT INTO [Table]
+([Uid], [Number], [Date], [fld_abc123])
+VALUES
+(@parameter1, @parameter2, @parameter3, @parameter4)
+";
+
+            Console.WriteLine(ethalon);
+            Assert.AreEqual(ethalon, query.Text);
+            Assert.AreEqual(4, query.Parameters.Count());
+
+        }
+
+
 
         [Test]
         public void Query_InsertTwoRows()

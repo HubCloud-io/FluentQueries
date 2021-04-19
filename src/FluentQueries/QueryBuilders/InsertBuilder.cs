@@ -26,6 +26,18 @@ namespace FluentQueries.QueryBuilders
             return this;
         }
 
+        public InsertBuilder Into(string tableName, IEnumerable<IDataField> fields)
+        {
+            _into = $"[{tableName}]";
+
+            foreach (var dataField in fields)
+            {
+                _fields.Add(dataField.Name);
+            }
+
+            return this;
+        }
+
         public InsertBuilder Values(IEnumerable<object> values)
         {
             var row = new List<string>();
@@ -35,6 +47,27 @@ namespace FluentQueries.QueryBuilders
                 var parameterName = $"parameter{(_parameters.Count() + 1)}";
 
                 var parameter = new QueryParameter(parameterName, value);
+                SetParameter(parameter);
+
+                row.Add("@" + parameterName);
+
+            }
+
+            _data.Add(row);
+
+            return this;
+        }
+
+        public InsertBuilder Values(IEnumerable<IDataField> dataFields)
+        {
+            var row = new List<string>();
+
+            foreach (var dataField in dataFields)
+            {
+                var parameterName = $"parameter{(_parameters.Count() + 1)}";
+
+                var valueType = QueryParameter.DbTypeByValueType(dataField.ValueType);
+                var parameter = new QueryParameter(parameterName, dataField.Value, valueType);
                 SetParameter(parameter);
 
                 row.Add("@" + parameterName);

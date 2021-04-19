@@ -2,6 +2,7 @@
 using FluentQueries.Models;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 
@@ -32,6 +33,17 @@ namespace FluentQueries.QueryBuilders
             foreach (var kvp in values)
             {
                 SetExpressionAndParameter(kvp.Key, kvp.Value);
+            }
+
+            return this;
+        }
+
+        public UpdateBuilder Set(IEnumerable<IDataField> dataFields)
+        {
+            foreach (var dataField in dataFields)
+            {
+                var dbType = QueryParameter.DbTypeByValueType(dataField.ValueType);
+                SetExpressionAndParameter(dataField.Name, dataField.Value, dbType);
             }
 
             return this;
@@ -95,6 +107,24 @@ namespace FluentQueries.QueryBuilders
             }
 
             var parameter = new QueryParameter(parameterName, value);
+            SetParameter(parameter);
+
+        }
+
+        private void SetExpressionAndParameter(string name, object value, DbType dbType)
+        {
+            var parameterName = name.ToLower();
+            var parameterExpression = $"@{parameterName}";
+            if (_fields.ContainsKey(name))
+            {
+                _fields[name] = parameterExpression;
+            }
+            else
+            {
+                _fields.Add(name, parameterExpression);
+            }
+
+            var parameter = new QueryParameter(parameterName, value, dbType);
             SetParameter(parameter);
 
         }

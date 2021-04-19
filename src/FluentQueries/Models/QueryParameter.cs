@@ -31,6 +31,14 @@ namespace FluentQueries.Models
             DbType = dbType;
         }
 
+        public QueryParameter(IDataField dataField)
+        {
+            Name = dataField.Name;
+            Value = dataField.Value;
+            DbType = DbTypeByValueType(dataField.ValueType);
+
+        }
+
         public static DbType DbTypeByValue(object value)
         {
             var dbType = DbType.Object;
@@ -41,6 +49,17 @@ namespace FluentQueries.Models
             }
 
             var valueType = value.GetType();
+
+            dbType = DbTypeByValueType(valueType);
+
+            return dbType;
+        }
+
+        public static DbType DbTypeByValueType(Type valueType)
+        {
+
+            var dbType = DbType.Object;
+
 
             if (valueType == typeof(int))
             {
