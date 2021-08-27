@@ -16,6 +16,8 @@ namespace FluentQueries.QueryBuilders
         private List<string> _leftJoinExpressions = new List<string>();
         private string _whereExpression = "";
         private List<IQueryParameter> _parameters = new List<IQueryParameter>();
+        private int _itemsSkip;
+        private int _itemsPerPage;
 
         public static SelectBuilder Make()
         {
@@ -76,6 +78,32 @@ namespace FluentQueries.QueryBuilders
                 var selectExpression = fld.Expression;
                 _selectExpressions.Add(selectExpression);
             }
+
+            return this;
+        }
+
+        public SelectBuilder ItemsSkip(int itemSkip)
+        {
+            _itemsSkip = itemSkip;
+
+            var parameter = new QueryParameter("itemsSkip", _itemsSkip, DbType.Int32);
+            _parameters.Add(parameter);
+
+            return this;
+        }
+
+        public SelectBuilder ItemsPerPage(int itemsPerPage)
+        {
+
+            if (itemsPerPage > 0)
+            {
+                _itemsPerPage = itemsPerPage;
+
+                var parameter = new QueryParameter("itemsPerPage", _itemsPerPage, DbType.Int32);
+                _parameters.Add(parameter);
+
+            }
+
 
             return this;
         }
@@ -172,6 +200,13 @@ namespace FluentQueries.QueryBuilders
             // ORDER BY
             AddOrderByExpressions(sb);
 
+            if (_itemsPerPage > 0)
+            {
+                sb.AppendLine("OFFSET @itemsSkip ROWS");
+                sb.AppendLine("FETCH NEXT @itemsPerPage ROWS ONLY");
+            }
+
+
             query.Text = sb.ToString();
 
             return query;
@@ -194,6 +229,7 @@ namespace FluentQueries.QueryBuilders
         {
             if (_orderByExpressions.Any())
             {
+
                 sb.Append("ORDER BY ");
                 var n = 1;
                 foreach (var currentExpression in _orderByExpressions)
@@ -205,6 +241,7 @@ namespace FluentQueries.QueryBuilders
                     sb.Append(currentExpression);
                     n++;
                 }
+                sb.AppendLine();
             }
         }
     }

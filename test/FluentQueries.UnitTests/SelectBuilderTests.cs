@@ -110,7 +110,8 @@ WHERE DateStart >= @dateStart AND DateFinish <= @dateFinish
 
             var ethalon = @"SELECT [Title]
 FROM [Table]
-ORDER BY [Date] DESC";
+ORDER BY [Date] DESC
+";
             Assert.AreEqual(ethalon, query.Text);
         }
 
@@ -121,11 +122,27 @@ ORDER BY [Date] DESC";
 
             var ethalon = @"SELECT [Title]
 FROM [Table]
-ORDER BY [Date] DESC, [Number]";
+ORDER BY [Date] DESC, [Number]
+";
             Assert.AreEqual(ethalon, query.Text);
         }
 
+        [Test]
+        public void Query_OrderByPaging()
+        {
+            var query = SelectBuilder.Make().Select("Title").From("Table").OrderBy("[Date] DESC").ItemsSkip(20).ItemsPerPage(10).Query();
 
+            var ethalon = @"SELECT [Title]
+FROM [Table]
+ORDER BY [Date] DESC
+OFFSET @itemsSkip ROWS
+FETCH NEXT @itemsPerPage ROWS ONLY
+";
+
+
+            Assert.AreEqual(ethalon, query.Text);
+
+        }
 
     }
 }
