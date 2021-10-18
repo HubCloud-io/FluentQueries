@@ -15,6 +15,8 @@ namespace FluentQueries.QueryBuilders
         private string _whereExpression = "";
         private Dictionary<string, IQueryParameter> _parameters = new Dictionary<string, IQueryParameter>();
 
+        public int ParametersCount => _parameters.Count();
+
         public UpdateBuilder Table(string tableName)
         {
             _tableName = tableName;

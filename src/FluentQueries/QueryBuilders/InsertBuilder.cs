@@ -14,6 +14,8 @@ namespace FluentQueries.QueryBuilders
         private List<List<string>> _data = new List<List<string>>();
         private Dictionary<string, IQueryParameter> _parameters = new Dictionary<string, IQueryParameter>();
 
+        public int ParametersCount => _parameters.Count();
+
         public InsertBuilder Into(string tableName, IEnumerable<string> fields)
         {
             _into = $"[{tableName}]";

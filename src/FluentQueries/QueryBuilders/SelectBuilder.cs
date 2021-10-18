@@ -19,6 +19,8 @@ namespace FluentQueries.QueryBuilders
         private int _itemsSkip;
         private int _itemsPerPage;
 
+        public int ParametersCount => _parameters.Count();
+
         public static SelectBuilder Make()
         {
             return new SelectBuilder();
