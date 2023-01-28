@@ -7,13 +7,20 @@ using System.Text;
 
 namespace FluentQueries.QueryBuilders
 {
+    public enum IdentityType
+    {
+        Int,
+        Long,
+        Guid
+    }
     public class InsertBuilder
     {
         private string _into = "";
         private List<string> _fields = new List<string>();
         private List<List<string>> _data = new List<List<string>>();
         private Dictionary<string, IQueryParameter> _parameters = new Dictionary<string, IQueryParameter>();
-
+        private string _scopeIdentityQuery;
+        
         public int ParametersCount => _parameters.Count();
 
         public InsertBuilder Into(string tableName, IEnumerable<string> fields)
@@ -80,6 +87,22 @@ namespace FluentQueries.QueryBuilders
 
             return this;
         }
+        
+        public InsertBuilder ScopeIdentity(IdentityType identityType = IdentityType.Int)
+        {
+            var type = "INT";
+            switch (identityType)
+            {
+                case IdentityType.Long:
+                    type = "BIGINT";
+                    break;
+                case IdentityType.Guid:
+                    type = "UNIQUEIDENTIFIER";
+                    break;
+            }
+            _scopeIdentityQuery = $"SELECT CAST(SCOPE_IDENTITY() as {type})";
+            return this;
+        }
 
         public IQuery Query()
         {
@@ -128,6 +151,10 @@ namespace FluentQueries.QueryBuilders
                 sb.AppendLine(")");
                 r++;
             }
+
+            if (!string.IsNullOrEmpty(_scopeIdentityQuery))
+                sb.Append(";")
+                    .Append(_scopeIdentityQuery);
 
             query.Text = sb.ToString();
 
