@@ -93,6 +93,31 @@ VALUES
             Assert.AreEqual(8, query.Parameters.Count());
 
         }
+        
+        [Test]
+        public void Query_ScopeIdentity()
+        {
+            var row1 = new Dictionary<string, object>();
+            row1.Add("Uid", Guid.Parse("{14A791DC-8C9E-4F23-A542-B12F848F497A}"));
+            row1.Add("Number", 1);
+            row1.Add("Date", new DateTime(2021, 02, 16));
+            row1.Add("fld_abc123", 1);
+            
+            var query = InsertBuilder.Make()
+                .Into("Table", row1.Keys.ToList())
+                .Values(row1.Values.ToList())
+                .ScopeIdentity()
+                .Query();
+            
+            var ethalon = @"INSERT INTO [Table]
+([Uid], [Number], [Date], [fld_abc123])
+VALUES
+(@parameter1, @parameter2, @parameter3, @parameter4)
+;SELECT CAST(SCOPE_IDENTITY() as INT)";
+            
+            Console.WriteLine(ethalon);
+            Assert.AreEqual(ethalon, query.Text);
+        }
 
     }
 }
